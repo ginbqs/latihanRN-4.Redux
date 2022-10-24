@@ -1,62 +1,52 @@
-import {useCallback, useEffect} from 'react'
+import {useContext, useLayoutEffect} from 'react'
 import {View,Text,StyleSheet, Button, Alert,ScrollView,Image} from 'react-native'
-import {useDispatch, useSelector} from 'react-redux'
 import Color from '../constant/Color'
 import { MEALS } from '../data/dummy-data'
-import { toogleFavorite } from '../store/actions/meals'
-
+import IconButton from '../components/IconButton'
+import { FavoritesContext } from '../store/context/favorites-context'
 
 const ListItem = props => {
     return (
       <View style={styles.listItem}>
-        <Text>{props.children}</Text>
+        <Text  style={{color:'white'}}>{props.children}</Text>
       </View>
     );
   };
 
 const MealDetail = props => {
+    const favoriteMealCtx = useContext(FavoritesContext);
+
     const {mealId} = props.route.params
-    // useEffect(() => {
-    //     const selectMeal = MEALS.find(meal => meal.id === mealId)
-    //     console.log(selectMeal)
-    //     props.navigation.setOptions({
-    //         title: selectMeal.title,
-    //         headerStyle:{
-    //             backgroundColor:Platform.OS==='android' ? Color.primary : ''
-    //         },
-    //         headerTintColor:Platform.OS=='android' ? 'white' : Color.primary
-    //     });
-    // }, [props.navigation]);
-    const availableMeals = useSelector(state => state.meals.meals)
-    const selectedMeal = availableMeals.find(meal => meal.id === mealId);
 
-    useEffect(() => {
-      props.navigation.setParams({
-        mealTitle:selectedMeal.title
-      })
-    },[selectedMeal])
+    const mealIsFavorite = favoriteMealCtx.ids.includes(mealId)
 
-    const dispatch = useDispatch()
-    const handleFav = useCallback(() => {
-      dispatch(toogleFavorite(mealId))
-    },[dispatch,mealId])
-    const currentFav = useSelector(state => state.meals.favoriteMeals.some(meal => meal.id === mealId))
-    useEffect(() => {
-      // console.log('assuuuuuuuu')
-      // props.navigation.setParams({
-      //   toogleFavorite:handleFav
-      // })
-    },[handleFav])
+    const changeFavoriteHanlder = () => {
+      if(mealIsFavorite){
+        favoriteMealCtx.removeFavorite(mealId)
+      }else{
+        favoriteMealCtx.addFavorite(mealId)
+      }
+    }
+    useLayoutEffect(() => {
+        const selectMeal = MEALS.find(meal => meal.id === mealId)
+        props.navigation.setOptions({
+            title: selectMeal.title,
+            headerRight: () => {
+              return <IconButton mealIsFavorite={mealIsFavorite}  onPress={changeFavoriteHanlder}/>
+            }
+
+        });
+    }, [props.navigation,changeFavoriteHanlder]);
+      const selectedMeal = MEALS.find(meal => meal.id === mealId);
 
     return(
         <ScrollView>
         <Image source={{ uri: selectedMeal.imageUrl }} style={styles.image} />
         <View style={styles.details}>
-          <Text>{selectedMeal.duration}m</Text>
-          <Text>{selectedMeal.complexity.toUpperCase()}</Text>
-          <Text>{selectedMeal.affordability.toUpperCase()}</Text>
+          <Text style={{color:'white'}}>{selectedMeal.duration}m</Text>
+          <Text style={{color:'white'}}>{selectedMeal.complexity.toUpperCase()}</Text>
+          <Text style={{color:'white'}}>{selectedMeal.affordability.toUpperCase()}</Text>
         </View>
-        <Button title="favo" onPress={handleFav} />
         <Text style={styles.title}>Ingredients</Text>
         {selectedMeal.ingredients.map(ingredient => (
           <ListItem key={ingredient}>{ingredient}</ListItem>
@@ -81,7 +71,8 @@ const styles = StyleSheet.create({
     },
     title: {
       fontSize: 22,
-      textAlign: 'center'
+      textAlign: 'center',
+      color: 'white'
     },
     listItem: {
       marginVertical: 10,
