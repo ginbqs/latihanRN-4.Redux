@@ -1,9 +1,10 @@
-import {useContext, useLayoutEffect} from 'react'
+import { useLayoutEffect} from 'react'
 import {View,Text,StyleSheet, Button, Alert,ScrollView,Image} from 'react-native'
 import Color from '../constant/Color'
 import { MEALS } from '../data/dummy-data'
 import IconButton from '../components/IconButton'
-import { FavoritesContext } from '../store/context/favorites-context'
+import { useDispatch, useSelector } from 'react-redux'
+import {addFavorite,removeFavorite} from '../store/redux/favorite'
 
 const ListItem = props => {
     return (
@@ -14,17 +15,18 @@ const ListItem = props => {
   };
 
 const MealDetail = props => {
-    const favoriteMealCtx = useContext(FavoritesContext);
+    const favoriteMealIds = useSelector((state) => state.favoriteMeals.ids);
+    const dispatch = useDispatch()
 
     const {mealId} = props.route.params
 
-    const mealIsFavorite = favoriteMealCtx.ids.includes(mealId)
+    const mealIsFavorite = favoriteMealIds.includes(mealId)
 
     const changeFavoriteHanlder = () => {
       if(mealIsFavorite){
-        favoriteMealCtx.removeFavorite(mealId)
+        dispatch(removeFavorite({id:mealId}))
       }else{
-        favoriteMealCtx.addFavorite(mealId)
+        dispatch(addFavorite({id:mealId}))
       }
     }
     useLayoutEffect(() => {
